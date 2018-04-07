@@ -2,6 +2,7 @@ const { JPixi } = require("./lib/jpixi");
 const { appConf } = require("./lib/jpixi_config");
 const { World } = require("./world");
 const { DynamicObject } = require("./dynamicobject")
+const { BaseObject } = require("./baseobject")
 const { Prop } = require("./baseobject")
 
 
@@ -50,7 +51,8 @@ class Camera {
     }
 
     TargetDestroyed() {
-        // TODO 
+        var onDeath = new BaseObject(this.world, -this.world.container.x, -this.world.container.y, 0, 0);
+        this.targetObject = onDeath;
     }
 
     /** 

@@ -73,7 +73,6 @@ class Target {
 
     TargetDestroyed() {
         this.object = this.seeker;
-        this.seeker.TargetUpdate();
     }
 }
 

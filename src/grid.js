@@ -2,7 +2,7 @@ const SAT = require("sat");
 const { JPixi } = require("./lib/jpixi");
 const { World } = require("./world");
 const { appConf } = require("./lib/jpixi_config");
-const { DynamicTypes } = require("./baseobject");
+const { DynamicTypes, Prop } = require("./baseobject");
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -331,10 +331,12 @@ class Cell {
     constructor(world, grid, index, posX, posY, width, height) {
         this.world = world;
         this.index = index;
-        this.sprite = JPixi.Sprite.Create("swnewn_files/images/black1px.png", posX, posY, width, height, grid.container);
+        this.prop = new Prop(posX, posY, width, height);
+        //this.sprite = JPixi.Sprite.Create("swnewn_files/images/black1px.png", this.prop.x, this.prop.y, this.prop.width, this.prop.height, grid.container);//Debug
         // this.sprite.tint = 0xFF0000 * Math.random(); //Debug
-        this.sprite.alpha = 0; //0.3 debug
-        this.collider = world.CreateBox(this.sprite);
+        // this.sprite.alpha = 0.3; //Debug
+
+        this.collider = world.CreateBox(this.prop);
 
         this.staticObjs = [];
         this.player = [];
@@ -353,18 +355,22 @@ class Cell {
         this.count++;
         if (this.count > 3600) this.count = 1;
 
-        // Every 6 frame, check if cell is within camera view. If outside, limit updates.
-        if (this.FramesBetweenUpdates(6)) {
-            if (!this.world.CollideBoxBox(this.collider, this.world.camera.collider)) this.updateRate = 30;
+        // Every 12 frame, check if cell is within camera view. If outside, limit updates.
+        if (this.FramesBetweenUpdates(12)) {
+            if (!this.world.CollideBoxBox(this.collider, this.world.camera.collider)) this.updateRate = 1;
             else this.updateRate = 1;
         }
 
         // Update all objects in cell.
         if (this.FramesBetweenUpdates(this.updateRate)) {
-            //Player list.
-            for (var i = this.player.length - 1; i > -1; i--) {
-                var player = this.player[i];
+            var playerUpdated = false;
+            var friendUpdated = false;
+            var foeUpdated = false;
 
+            //Player list.
+            var player = this.player[0];
+
+            if (player != undefined) {
                 if (!player.cellsActive[this.index] || player.IsDestroyed()) {
                     this.player = [];
                     return;
@@ -372,8 +378,9 @@ class Cell {
 
                 player.FirstPass();
                 player.Update(this);
-            }
 
+                playerUpdated = true;
+            }
 
             // Friend list.
             for (var i = this.friends.length - 1; i > -1; i--) {
@@ -386,8 +393,9 @@ class Cell {
 
                 friend.FirstPass();
                 friend.Update(this);
-            }
 
+                friendUpdated = true;
+            }
 
             // Foe list.
             for (var i = this.foes.length - 1; i > -1; i--) {
@@ -400,6 +408,34 @@ class Cell {
 
                 foe.FirstPass();
                 foe.Update(this);
+
+                foeUpdated = true;
+            }
+
+            if (playerUpdated || friendUpdated || foeUpdated) {
+                // Item list.
+                for (var i = this.items.length - 1; i > -1; i--) {
+                    var item = this.items[i];
+
+                    if (item.IsDestroyed()) {
+                        this.items.splice(i, 1);
+                        continue;
+                    }
+
+                    item.Update(this);
+                }
+
+                // Static list.
+                for (var i = this.staticObjs.length - 1; i > -1; i--) {
+                    var staticObj = this.staticObjs[i];
+
+                    if (staticObj.IsDestroyed()) {
+                        this.staticObjs.splice(i, 1);
+                        continue;
+                    }
+
+                    staticObj.Update(this);
+                }
             }
         }
     }

@@ -241,13 +241,15 @@ function TextCreateFPS(updateRate = 1000) {
  * 
  * @param {string} message
  */
-function TextCreateMessage(name, message, posX, posY) {
-    var msgText = new PIXI.Text("00", { fontFamily: "Arial", fontSize: 18, fill: 0x55AAFF, align: "center" });
+function TextCreateMessage(name, message, posX, posY, color) {
+    var msgText = new PIXI.Text("00", { fontFamily: "Courier", fontSize: 18, fill: color, align: "center", strokeThickness: 20 });
     msgText.text = message;
     msgText.position.set(posX, posY);
     msgText.name = name;
 
-    app.stage.addChild(msgText)
+    app.stage.addChild(msgText);
+
+    return msgText;
 }
 
 

@@ -10,18 +10,27 @@ module.exports = {
     // DynamicObject AI
     ai: {
         cellUpdateRate: 2, // How often to check for cells object is in. 6 = ten times a sec at 60 frames.
-        closeUpdateRate: 2, // How often to check distance to surronding objects.
         directionUpdateRate: 2, // How often to run a check to see if object needs to be reset.
-        collUpdateRate: 2, // How often to check for collision.
         interactUpdateRate: 2, // How often to check if colliding with another dynamic object.
         speed: 0.3,   // Default speed of AI objects
+        friend: {
+            speed: 3
+        }
     },
 
     // DynamicObject Player
     player: {
         cellUpdateRate: 2,  // How often to check for cells player is in. 1 = every frame, 2 = every other etc
-        interactUpdateRate: 2,  // How often to check if colliding with another dynamic object.
-        speed: 0.5  // Default movement speed. direction * speed * updaterate * delta
+        movementUpdateRate: 6,
+        speed: 1  // Default movement speed. direction * speed * updaterate * delta
+    },
+
+    item: {
+        interactUpdateRate: 2
+    },
+
+    staticObj: {
+        collisionUpdateRate: 2
     },
 
     // World

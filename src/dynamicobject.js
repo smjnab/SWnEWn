@@ -131,23 +131,6 @@ class DynamicObject extends BaseObjectColl {
 
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // COLLISIONS
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    CollisionStatic(collInfo) {
-        if (collInfo.overlapN.x != 0) {
-            this.target.direction.x = 0;
-            this.prop.x += collInfo.overlapV.x * 1.1;
-        }
-
-        if (collInfo.overlapN.y != 0) {
-            this.target.direction.y = 0;
-            this.prop.y += collInfo.overlapV.y * 1.1;
-        }
-    }
-
-
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // HELPERS
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -204,110 +187,132 @@ class Player extends DynamicObject {
 
         this.sprite.parent.removeChild(this.sprite);
         this.sprite.setParent(this.world.layerPlayer);
-        this.world.container.interactive = true;
+        this.sprite.tint = 0x0000FF;
+        this.sprite.alpha = 1;
 
-        this.playerTarget = new BaseObject(this.world, 960, 640, 0, 0);
+        this.playerTarget = new BaseObject(this.world, this.prop.x, this.prop.y, 8, 8);
+        this.playerTarget.sprite = JPixi.Sprite.Create(resourcePath,
+            this.playerTarget.prop.x, this.playerTarget.prop.y,
+            this.playerTarget.prop.width, this.playerTarget.prop.height,
+            world.layerTopDecals, true
+        );
+        this.playerTarget.sprite.tint = 0x2F2FFF;
+        this.playerTarget.sprite.alpha = 0.7;
+
         this.target.SetTarget(this.playerTarget);
 
         this.speed = 0;
 
-        this.world.container.on("pointerdown", event => { event.stopPropagation(); this.OnPointerDown(event); });
-        this.world.container.on("pointermove", event => { event.stopPropagation(); this.OnPointerMove(event); });
-        this.world.container.on("pointerup", event => { event.stopPropagation(); this.OnPointerUp(event); });
+        /**@type {PIXI.Sprite} */
+        this.inputDetection = new JPixi.Sprite.Create("swnewn_files/images/black1px.png", 0, 0, appConf.worldWidth, appConf.worldHeight, this.world.layerBottom, false);
+        // this.inputDetection.alpha = 0;
+        this.inputDetection.interactive = true;
+        this.inputDetection.on("pointerdown", event => { event.stopPropagation(); this.OnPointerDown(event); });
+        this.inputDetection.on("pointerup", event => { event.stopPropagation(); this.OnPointerUp(event); });
 
-        this.friend = undefined;
+        this.eventData = undefined;
+
+        this.friends = [];
+
+        this.score = 0;
+        this.scoreText = JPixi.Text.CreateMessage("score", "Score: " + this.score, 50, 0, 0xFFFFFF);
     }
 
     OnPointerDown(event) {
-        var localPoint = event.data.getLocalPosition(this.world.container);
+        if (this.IsDestroyed()) return;
 
-        if (this.target.distance > 20000) this.speed = 7;
-        else if (this.target.distance > 15000) this.speed = 5;
-        else if (this.target.distance > 10000) this.speed = 3;
-        else if (this.target.distance > 6000) this.speed = 2;
-        else if (this.target.distance > 2000) this.speed = 1;
-        else this.speed = player.speed;
-
-        this.playerTarget.prop.x = localPoint.x;
-        this.playerTarget.prop.y = localPoint.y;
+        this.eventData = event.data;
+        this.speed = 1;
     }
-
-    OnPointerMove(event) {
-        var localPoint = event.data.getLocalPosition(this.world.container);
-
-        if (this.speed != 0 && this.target.distance > 20000) this.speed = 7;
-        else if (this.speed != 0 && this.target.distance > 15000) this.speed = 5;
-        else if (this.speed != 0 && this.target.distance > 10000) this.speed = 3;
-        else if (this.speed != 0 && this.target.distance > 6000) this.speed = 2;
-        else if (this.speed != 0 && this.target.distance > 2000) this.speed = 1;
-        else if (this.speed != 0) this.speed = player.speed;
-
-        this.playerTarget.prop.x = localPoint.x;
-        this.playerTarget.prop.y = localPoint.y;
-    }
-
 
     OnPointerUp(event) {
+        if (this.IsDestroyed()) return;
+
         this.speed = 0;
+
+        this.playerTarget.prop.x = this.prop.x;
+        this.playerTarget.prop.y = this.prop.y;
+        this.playerTarget.sprite.position.set(this.prop.x, this.prop.y);
     }
+
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // OBJECT UPDATE
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     Update(cell) {
+        // if (cell.FramesBetweenUpdates(player.movementUpdateRate)) {
+        // Move player towards mouse/touch position.
+        if (this.eventData != undefined && this.speed > 0) {
+            var localPoint = this.eventData.getLocalPosition(this.world.container);
 
-        if (cell.FramesBetweenUpdates(player.interactUpdateRate)) {
+            if (this.speed != 0 && this.target.distance > 20000) this.speed = 6;
+            else if (this.speed != 0 && this.target.distance > 20000) this.speed = 5;
+            else if (this.speed != 0 && this.target.distance > 14000) this.speed = 4;
+            else if (this.speed != 0 && this.target.distance > 8000) this.speed = 3;
+            else if (this.speed != 0 && this.target.distance > 2000) this.speed = 2;
+            else if (this.speed != 0) this.speed = player.speed;
 
-            // Item interaction
-            for (var i = cell.items.length - 1; i > -1; i--) {
-                var item = cell.items[i];
-
-                if (this.world.CollideBoxCircle(item.collider, this.collider)) this.CollisionItem(item);
-            }
-
-            /* for (var i = cell.friends.length - 1; i > -1; i--) {
-                  var friend = cell.friends[i];
-  
-                  if (this.world.CollideCircleCircle(friend.collider, this.collider)) this.CollisionFriend(friend);
-              }*/
+            this.playerTarget.prop.x = localPoint.x;
+            this.playerTarget.prop.y = localPoint.y;
+            this.playerTarget.sprite.position.set(localPoint.x, localPoint.y);
         }
-
-        // Static interaction
-        for (var i = cell.staticObjs.length - 1; i > -1; i--) {
-            var staticObj = cell.staticObjs[i];
-
-            if (this.world.CollideBoxCircle(staticObj.collider, this.collider)) this.CollisionStatic(this.world.collInfo);
-        }
+        //   }
 
         if (this.IsDestroyed()) return;
 
         this.UpdateMovement(cell);
     }
 
-    CollisionItem(item) {
-        item.sprite.tint = 0x0000FF * Math.random();
-        item.sprite.alpha = 1;
-    }
-
-    CollisionFriend(friend) {
-        if (this.friend != undefined && this.friend != friend) {
-            friend.Destroy();
-
-            this.friend.prop.width += 0.3;
-            this.friend.prop.height += 0.3;
-        }
-        else {
-            friend.target.SetTarget(this);
-            friend.speed = 12;
-            this.friend = friend;
-            this.friend.sprite.alpha = 0.2;
-        }
-    }
-
     Destroy() {
         this.world.layerPlayer.removeChild(this.sprite);
+        this.world.layerTopDecals.removeChild(this.playerTarget.sprite);
+        this.playerTarget = undefined;
+
+        JPixi.Text.CreateMessage("death", "GAME OVER MAN, GAME OVER!\n SCORE: " + this.score, appConf.cameraWidth / 3, appConf.cameraHeight / 2, 0xFFFFFF);
+
         super.Destroy();
+    }
+
+    AddFriend() {
+        var index = this.friends.length;
+        this.friends[index] = new Friend("swnewn_files/images/white1px.png", this.world, this.prop.x, this.prop.y, 8, 8);
+
+        if (index <= 0) {
+            this.friends[index].target.SetTarget(this);
+            this.friends[index].nr1 = true;
+            this.friends[index].prop.width += 8;
+            this.friends[index].prop.height += 8;
+        }
+        else {
+            this.friends[index].target.SetTarget(this.friends[index - 1]);
+        }
+
+        this.score++;
+        this.scoreText.text = "Score: " + this.score;
+    }
+
+    PUOutOfPhase() {
+        this.sprite.alpha = 0.2;
+        this.sprite.tint = 0xFF00FF;
+
+        this.score += 10;
+
+        setTimeout(() => { if (this.IsDestroyed()) return; this.sprite.alpha = 0.2; }, 3000);
+        setTimeout(() => { if (this.IsDestroyed()) return; this.sprite.alpha = 0.8; }, 3750);
+        setTimeout(() => { if (this.IsDestroyed()) return; this.sprite.alpha = 0.2; }, 4250);
+        setTimeout(() => { if (this.IsDestroyed()) return; this.sprite.alpha = 0.8; }, 4500);
+        setTimeout(() => { if (this.IsDestroyed()) return; this.sprite.alpha = 0.2; }, 4750);
+        setTimeout(() => { if (this.IsDestroyed()) return; this.sprite.alpha = 1; this.sprite.tint = 0x0000FF; }, 5000);
+    }
+
+    PURepel() {
+
+        this.score += 10;
+
+        for (var i = this.friends.length - 1; i > -1; i--) {
+            this.friends[i].InRepel();
+        }
     }
 }
 
@@ -329,13 +334,46 @@ class AI extends DynamicObject {
      */
     constructor(resourcePath, world, posX, posY, width, height) {
         super(resourcePath, world, posX, posY, width, height);
+    }
+
+    Destroy() {
+        this.world.layerMiddle.removeChild(this.sprite);
+        super.Destroy();
+    }
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// FRIEND EXTENSION
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+class Friend extends AI {
+
+    /**
+     * 
+     * @param {string} resourcePath 
+     * @param {World} world 
+     * @param {Number} posX 
+     * @param {Number} posY
+     * @param {Number} width
+     * @param {Number} height
+     */
+    constructor(resourcePath, world, posX, posY, width, height, nr1) {
+        super(resourcePath, world, posX, posY, width, height);
         this.world.grid.AddFriendToCell(this);
         this.dynamicType = DynamicTypes.Friend;
 
-        this.speed = ai.speed;
+        this.speed = ai.friend.speed;
 
-        this.sprite.parent.removeChild(this.sprite);
-        this.sprite.setParent(this.world.layerMiddle);
+        this.sprite.tint = 0xFFFFFF * Math.random();
+        this.sprite.alpha = 0.1;
+
+        setTimeout(() => { this.sprite.alpha = 0.15; }, 1000);
+        setTimeout(() => { this.sprite.alpha = 0.2; }, 2000);
+        setTimeout(() => { this.sprite.alpha = 0.4; }, 3000);
+        setTimeout(() => { this.sprite.alpha = 1; }, 4000);
+
+        this.nr1 = false;
     }
 
 
@@ -344,21 +382,52 @@ class AI extends DynamicObject {
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     Update(cell) {
-        // Static interaction
-        /* for (var i = cell.staticObjs.length - 1; i > -1; i--) {
-             var staticObj = cell.staticObjs[i];
- 
-             if (this.world.CollideBoxCircle(staticObj.collider, this.collider)) this.CollisionStatic(this.world.collInfo);
-         }*/
-
         if (this.IsDestroyed()) return;
+
+        if (this.nr1 && this.target.distance < 20000 && this.sprite.alpha == 1) this.sprite.tint = 0xFF0000;
+        else if (this.sprite.alpha == 1 && this.speed != 0) this.sprite.tint = 0xFFFFFF * Math.random();
+
+        if (cell.FramesBetweenUpdates(ai.interactUpdateRate)) {
+            var player = cell.player[0];
+            if (player != undefined && this.world.CollideCircleCircle(this.collider, player.collider)) this.CollisionPlayer(player);
+        }
 
         this.UpdateMovement(cell);
     }
 
-    Destroy() {
-        this.world.layerMiddle.removeChild(this.sprite);
-        super.Destroy();
+    CollisionPlayer(player) {
+        if (player.sprite.alpha === 1 && this.sprite.alpha === 1) player.Destroy();
+    }
+
+    InRepel() {
+        if (this.sprite.alpha != 1) return;
+
+        this.target.reverse = true;
+        this.sprite.alpha = 0.2;
+        this.sprite.tint = 0xFFFF00;
+
+        setTimeout(() => {
+            if (this.IsDestroyed()) return;
+
+            this.target.reverse = false;
+
+            setTimeout(() => {
+                if (this.IsDestroyed()) return;
+
+                this.sprite.alpha = 1;
+            }, 2500);
+        }, 2500);
+    }
+
+    Freeze() {
+        this.speed = 0;
+
+        setTimeout(() => { if (this.IsDestroyed()) return; this.sprite.alpha = 0.2; }, 3000);
+        setTimeout(() => { if (this.IsDestroyed()) return; this.sprite.alpha = 0.8; }, 3750);
+        setTimeout(() => { if (this.IsDestroyed()) return; this.sprite.alpha = 0.2; }, 4250);
+        setTimeout(() => { if (this.IsDestroyed()) return; this.sprite.alpha = 0.8; }, 4500);
+        setTimeout(() => { if (this.IsDestroyed()) return; this.sprite.alpha = 0.2; }, 4750);
+        setTimeout(() => { if (this.IsDestroyed()) return; this.sprite.alpha = 1; this.speed = ai.friend.speed; }, 5000);
     }
 }
 
@@ -369,5 +438,5 @@ class AI extends DynamicObject {
 
 module.exports = {
     Player,
-    AI
+    Friend
 }

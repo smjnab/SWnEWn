@@ -2,11 +2,11 @@
 
 const { JPixi, App } = require("./lib/jpixi");
 const { appConf } = require("./lib/jpixi_config");
-const { Player, AI } = require("./dynamicobject");
+const { Player, Friend } = require("./dynamicobject");
 const { Camera, ResizeTypes } = require("./camera");
 const { World } = require("./world");
 const { StaticObject, StaticTiledObject } = require("./staticobject");
-const { Item } = require("./itemobject");
+const { Psy, Star, PUOutOfPhase, PURepel, PUFreeze } = require("./itemobject");
 const { Grid } = require("./grid");
 
 
@@ -32,9 +32,6 @@ var FPS;
 
 JPixi.Event.Init(() => {
     var resList = [
-        "swnewn_files/images/background.png",
-        "swnewn_files/images/drop.png",
-        "swnewn_files/images/hamster.png",
         "swnewn_files/images/zoomIn.png",
         "swnewn_files/images/zoomOut.png",
         "swnewn_files/images/black1px.png",
@@ -59,39 +56,50 @@ JPixi.Event.Start(() => {
     left.alpha = 0;
 
     // Friend
-    /*  for (var i = 0; i < 500; i++) {
-          var friend = new AI("swnewn_files/images/white1px.png", world, Math.random() * appConf.worldWidth, Math.random() * appConf.worldHeight, 8, 8);
-          friend.sprite.tint = 0xAADDFF;
-      }*/
+    for (var i = 0; i < 5000; i++) {
+        var friend = new Star("swnewn_files/images/white1px.png", world, Math.random() * appConf.worldWidth, Math.random() * appConf.worldHeight, 8, 8, true);
+        friend.sprite.tint = 0xAADDFF;
+    }
 
     // Player
-    var player = new Player("swnewn_files/images/white1px.png", world, 960, 640, 24, 24);
-    player.sprite.tint = 0x0000FF;
-    player.sprite.alpha = 0.3;
+    var player = new Player("swnewn_files/images/white1px.png", world, appConf.worldWidth / 2, appConf.worldHeight / 2, 24, 24);
     world.camera.SetTarget(player);
 
-    // Psy
-    var posX = 8;
-    var posY = 8;
+    // Power ups
+    for (var i = 0; i < 5; i++) {
+        var puoop = new PUOutOfPhase("swnewn_files/images/white1px.png", world, Math.random() * appConf.worldWidth, Math.random() * appConf.worldHeight, 12, 12, true);
+        puoop.sprite.tint = 0xFF00FF;
+    }
+    for (var i = 0; i < 5; i++) {
+        var purepel = new PURepel("swnewn_files/images/white1px.png", world, Math.random() * appConf.worldWidth, Math.random() * appConf.worldHeight, 12, 12, true);
+        purepel.sprite.tint = 0xFFFF00;
+    }
+    for (var i = 0; i < 5; i++) {
+        var pufreeze = new PUFreeze("swnewn_files/images/white1px.png", world, Math.random() * appConf.worldWidth, Math.random() * appConf.worldHeight, 12, 12, true);
+        pufreeze.sprite.tint = 0x00FFFF;
+    }
 
+    // Psy
+    /*var posX = 8;
+    var posY = 8;
+    
     for (var i = 0; i < 68; i++) {
         for (var j = 0; j < 120; j++) {
-            var psy = new Item("swnewn_files/images/white1px.png", world, posX, posY, 16, 16, true);
+            var psy = new Psy("swnewn_files/images/white1px.png", world, posX, posY, 16, 16, true);
             psy.sprite.alpha = 0;
-
+    
             posX += 16;
         }
         posX = 8;
         posY += 16;
-    }
-
+    }*/
 
     // FPS
-    //  FPS = JPixi.Text.CreateFPS();
+    FPS = JPixi.Text.CreateFPS();
 
     // Begin game 
     App.AddTicker(delta => {
-        //FPS();
+        FPS();
 
         world.Update(delta);
     });
