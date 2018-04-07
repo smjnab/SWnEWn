@@ -1,0 +1,14 @@
+{
+    "short_name": "SWnEWn",
+    "name": "SWnEWn",
+    "start_url": "/steem/swnewn",
+    "icons": [
+        {
+            "src": "/steem/swnewn_files/images/hamster.png",
+            "sizes": "64x64",
+            "type": "image/png"
+        }
+    ],
+    "display": "fullscreen",
+    "orientation": "landscape"
+}

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang=en>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-title" content="SWnEWn">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>SWnEWn</title>
+    <link rel="manifest" href="swnewn_files/manifest.json">
+    <link rel="apple-touch-icon" sizes="64x64" href="swnewn_files/images/hamster.png">
+    <link rel="stylesheet" href="swnewn_files/main.css ">
+</head>
+
+<body>
+    <div id="container">
+        <div id="pixi">
+            <!-- PIXI App -->
+        </div>
+    </div>
+
+    <!-- Load Scripts -->
+    <script src="swnewn_files/bundle.js "></script>
+</body>
+
+</html>
