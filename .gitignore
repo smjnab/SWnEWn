@@ -57,3 +57,8 @@ typings/
 # dotenv environment variables file
 .env
 
+# other 
+.notes
+swnewn_files/bundle.js
+.vscode/
+
