@@ -298,8 +298,10 @@ class Player extends DynamicObject {
         this.sprite.tint = 0x0000FF;
         this.isMunch = false;
 
-        for (var i = this.friends.length - 1; i > -1; i--) {
-            this.friends[i].Reset();
+        if (!this.skipFriendReset) {
+            for (var i = this.friends.length - 1; i > -1; i--) {
+                this.friends[i].Reset();
+            }
         }
 
         super.Reset();
@@ -348,7 +350,9 @@ class Player extends DynamicObject {
     }
 
     PUOutOfPhase() {
+        this.skipFriendReset = true;
         this.ResetTimeOutList();
+        this.skipFriendReset = false;
 
         this.sprite.alpha = 0.2;
         this.sprite.tint = 0xFF00FF;
@@ -527,6 +531,8 @@ class Friend extends AI {
     InRepel() {
         this.ResetTimeOutList();
 
+        if (this.nr1) this.speed = 0.1;
+
         this.target.reverse = true;
         this.sprite.alpha = 0.2;
         this.sprite.tint = 0xFFFF00;
@@ -599,11 +605,11 @@ class Friend extends AI {
         this.ResetTimeOutList();
 
         this.sprite.tint = 0x00FF00;
-        this.sprite.alpha = 0.8;
+        this.sprite.alpha = 0.2;
         this.speed = 0.8;
 
         this.AddToTimeOutList(setTimeout(() => { this.speed = 0.1; }, 250));
-        this.AddToTimeOutList(setTimeout(() => { this.speed = 0.01; this.sprite.alpha = 1; }, 1000));
+        this.AddToTimeOutList(setTimeout(() => { this.speed = 0.01; this.sprite.alpha = 1; }, 500));
         this.AddToTimeOutList(setTimeout(() => { this.sprite.alpha = 0.2; }, 3000));
         this.AddToTimeOutList(setTimeout(() => { this.sprite.alpha = 1; }, 3750));
         this.AddToTimeOutList(setTimeout(() => { this.sprite.alpha = 0.2; }, 4250));
