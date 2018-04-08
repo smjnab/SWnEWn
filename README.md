@@ -1,6 +1,9 @@
 # SWnEWn
 SteemitJam #4 participant, using PixiJS and sat-js to make a browser game.
 
+## How to play
+Go to https://smjn.itch.io/swnewn to play the game, instructions included on page.
+
 ## How to build
 Add pixijs and sat-js using npm. Use watchify (or equivalent) to bundle the scripts into a file called bundle.js and saved in swnewn_files/.
 
