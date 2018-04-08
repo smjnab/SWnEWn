@@ -23,11 +23,11 @@ class Item extends BaseObjectColl {
         else super(world, posX, posY, width, height, ColliderTypes.BoxCentered);
         this.world.grid.AddItemToCell(this);
 
-        this.sprite = JPixi.Sprite.Create(resourcePath, this.prop.x, this.prop.y, this.prop.width, this.prop.height, world.layerTop, centerAnchor);
+        this.sprite = JPixi.Sprite.Create(resourcePath, this.prop.x, this.prop.y, this.prop.width, this.prop.height, this.world.layerBottomDecals, centerAnchor);
     }
 
     Destroy() {
-        this.world.layerTop.removeChild(this.sprite);
+        this.world.layerBottomDecals.removeChild(this.sprite);
 
         this.collider = undefined;
         this.prop = undefined;
@@ -42,7 +42,6 @@ class Item extends BaseObjectColl {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // PSY OBJECT EXTENSION
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 class Psy extends Item {
     /**
@@ -72,10 +71,10 @@ class Psy extends Item {
     }
 }
 
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // STAR OBJECT EXTENSION
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 class Star extends Item {
     /**
@@ -89,6 +88,8 @@ class Star extends Item {
      */
     constructor(resourcePath, world, posX, posY, width, height, centerAnchor = false) {
         super(resourcePath, world, posX, posY, width, height, centerAnchor);
+
+        this.sprite.tint = 0xAADDFF;
     }
 
     Update(cell) {
@@ -96,12 +97,11 @@ class Star extends Item {
             var player = cell.player[0];
             if (player != undefined && this.world.CollideBoxCircle(this.collider, player.collider)) this.CollisionPlayer(player);
         }
-
-        if (this.IsDestroyed()) return;
     }
 
     CollisionPlayer(player) {
         this.Destroy();
+        player.UpdateScore(1);
         player.AddFriend();
     }
 }
@@ -111,8 +111,7 @@ class Star extends Item {
 // POWER UP OUT OF PHASE OBJECT EXTENSION
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-class PUOutOfPhase extends Item {
+class PowerUp extends Item {
     /**
      * 
      * @param {string} resourcePath path to image file to use as sprite.
@@ -131,22 +130,47 @@ class PUOutOfPhase extends Item {
             var player = cell.player[0];
             if (player != undefined && this.world.CollideBoxCircle(this.collider, player.collider)) this.CollisionPlayer(player);
         }
-
-        if (this.IsDestroyed()) return;
     }
 
     CollisionPlayer(player) {
+        player.UpdateScore(10);
         this.Destroy();
+    }
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// POWER UP OUT OF PHASE OBJECT EXTENSION
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+class PUOutOfPhase extends PowerUp {
+    /**
+     * 
+     * @param {string} resourcePath path to image file to use as sprite.
+     * @param {Number} posX postition X in world container.
+     * @param {Number} posY postition Y in world container.
+     * @param {Number} width width of sprite.
+     * @param {Number} height height of sprite.
+     * @param {World} world what world this object is in.
+     */
+    constructor(resourcePath, world, posX, posY, width, height, centerAnchor = false) {
+        super(resourcePath, world, posX, posY, width, height, centerAnchor);
+
+        this.sprite.tint = 0xFF00FF;
+    }
+
+    CollisionPlayer(player) {
+        super.CollisionPlayer(player);
         player.PUOutOfPhase();
     }
 }
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // POWER UP REPEL OBJECT EXTENSION
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-class PURepel extends Item {
+class PURepel extends PowerUp {
     /**
      * 
      * @param {string} resourcePath path to image file to use as sprite.
@@ -158,19 +182,12 @@ class PURepel extends Item {
      */
     constructor(resourcePath, world, posX, posY, width, height, centerAnchor = false) {
         super(resourcePath, world, posX, posY, width, height, centerAnchor);
-    }
 
-    Update(cell) {
-        if (cell.FramesBetweenUpdates(item.interactUpdateRate)) {
-            var player = cell.player[0];
-            if (player != undefined && this.world.CollideBoxCircle(this.collider, player.collider)) this.CollisionPlayer(player);
-        }
-
-        if (this.IsDestroyed()) return;
+        this.sprite.tint = 0xFFFF00;
     }
 
     CollisionPlayer(player) {
-        this.Destroy();
+        super.CollisionPlayer(player);
         player.PURepel();
     }
 }
@@ -180,8 +197,7 @@ class PURepel extends Item {
 // POWER UP FREEZE OBJECT EXTENSION
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-class PUFreeze extends Item {
+class PUFreeze extends PowerUp {
     /**
      * 
      * @param {string} resourcePath path to image file to use as sprite.
@@ -193,23 +209,43 @@ class PUFreeze extends Item {
      */
     constructor(resourcePath, world, posX, posY, width, height, centerAnchor = false) {
         super(resourcePath, world, posX, posY, width, height, centerAnchor);
-    }
 
-    Update(cell) {
-        if (cell.FramesBetweenUpdates(item.interactUpdateRate)) {
-            var player = cell.player[0];
-            if (player != undefined && this.world.CollideBoxCircle(this.collider, player.collider)) this.CollisionPlayer(player);
-        }
-
-        if (this.IsDestroyed()) return;
+        this.sprite.tint = 0x00FF2F;
     }
 
     CollisionPlayer(player) {
-        this.Destroy();
+        super.CollisionPlayer(player);
 
         for (var i = player.friends.length - 1; i > -1; i--) {
             player.friends[i].Freeze();
         }
+    }
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// POWER UP MUNCH OBJECT EXTENSION
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+class PUMunch extends PowerUp {
+    /**
+     * 
+     * @param {string} resourcePath path to image file to use as sprite.
+     * @param {Number} posX postition X in world container.
+     * @param {Number} posY postition Y in world container.
+     * @param {Number} width width of sprite.
+     * @param {Number} height height of sprite.
+     * @param {World} world what world this object is in.
+     */
+    constructor(resourcePath, world, posX, posY, width, height, centerAnchor = false) {
+        super(resourcePath, world, posX, posY, width, height, centerAnchor);
+
+        this.sprite.tint = 0xAF2F2F;
+    }
+
+    CollisionPlayer(player) {
+        super.CollisionPlayer(player);
+        player.PUMunch();
     }
 }
 
@@ -224,5 +260,6 @@ module.exports = {
     Star,
     PUOutOfPhase,
     PURepel,
-    PUFreeze
+    PUFreeze,
+    PUMunch
 }

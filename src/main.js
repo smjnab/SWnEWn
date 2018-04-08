@@ -6,7 +6,7 @@ const { Player, Friend } = require("./dynamicobject");
 const { Camera, ResizeTypes } = require("./camera");
 const { World } = require("./world");
 const { StaticObject, StaticTiledObject } = require("./staticobject");
-const { Psy, Star, PUOutOfPhase, PURepel, PUFreeze } = require("./itemobject");
+const { Psy, Star, PUOutOfPhase, PURepel, PUFreeze, PUMunch } = require("./itemobject");
 const { Grid } = require("./grid");
 
 
@@ -55,10 +55,9 @@ JPixi.Event.Start(() => {
     var left = new StaticTiledObject("swnewn_files/images/black1px.png", world, -32, 0, 32, appConf.worldHeight);
     left.alpha = 0;
 
-    // Friend
-    for (var i = 0; i < 5000; i++) {
-        var friend = new Star("swnewn_files/images/white1px.png", world, Math.random() * appConf.worldWidth, Math.random() * appConf.worldHeight, 8, 8, true);
-        friend.sprite.tint = 0xAADDFF;
+    // Star
+    for (var i = 0; i < 2000; i++) {
+        var star = new Star("swnewn_files/images/white1px.png", world, Math.random() * appConf.worldWidth, Math.random() * appConf.worldHeight, 8, 8, true);
     }
 
     // Player
@@ -68,15 +67,15 @@ JPixi.Event.Start(() => {
     // Power ups
     for (var i = 0; i < 5; i++) {
         var puoop = new PUOutOfPhase("swnewn_files/images/white1px.png", world, Math.random() * appConf.worldWidth, Math.random() * appConf.worldHeight, 12, 12, true);
-        puoop.sprite.tint = 0xFF00FF;
     }
     for (var i = 0; i < 5; i++) {
         var purepel = new PURepel("swnewn_files/images/white1px.png", world, Math.random() * appConf.worldWidth, Math.random() * appConf.worldHeight, 12, 12, true);
-        purepel.sprite.tint = 0xFFFF00;
     }
     for (var i = 0; i < 5; i++) {
         var pufreeze = new PUFreeze("swnewn_files/images/white1px.png", world, Math.random() * appConf.worldWidth, Math.random() * appConf.worldHeight, 12, 12, true);
-        pufreeze.sprite.tint = 0x00FFFF;
+    }
+    for (var i = 0; i < 5; i++) {
+        var pumunch = new PUMunch("swnewn_files/images/white1px.png", world, Math.random() * appConf.worldWidth, Math.random() * appConf.worldHeight, 12, 12, true);
     }
 
     // Psy

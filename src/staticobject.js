@@ -121,12 +121,12 @@ class StaticTiledObject extends BaseObjectColl {
     OnCollision(other) {
         if (this.world.collInfo.overlapN.x != 0) {
             other.target.direction.x = 0;
-            other.prop.x += this.world.collInfo.overlapV.x;
+            other.prop.x += this.world.collInfo.overlapV.x * 1.1;
         }
 
         if (this.world.collInfo.overlapN.y != 0) {
             other.target.direction.y = 0;
-            other.prop.y += this.world.collInfo.overlapV.y;
+            other.prop.y += this.world.collInfo.overlapV.y * 1.1;
         }
     }
 }
