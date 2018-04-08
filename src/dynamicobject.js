@@ -276,8 +276,9 @@ class Player extends DynamicObject {
         this.world.layerTopDecals.removeChild(this.playerTarget.sprite);
         this.playerTarget = undefined;
 
-        JPixi.Text.CreateMessage("death", "GAME OVER MAN, GAME OVER!\n SCORE: " + this.score, appConf.cameraWidth / 3, appConf.cameraHeight / 3, 0xFFFFFF);
+        this.world.container.parent.removeChild(this.scoreText);
 
+        JPixi.Text.CreateMessage("death", "GAME OVER MAN, GAME OVER!\n SCORE: " + this.score, appConf.cameraWidth / 3, appConf.cameraHeight / 3, 0xFFFFFF);
 
         this.inputDetection.alpha = 0;
         this.inputDetection.parent.removeChild(this.inputDetection);
@@ -319,11 +320,12 @@ class Player extends DynamicObject {
 
             if (count >= 80) count = 0;
 
-            nr1Friend.sprite.alpha += 0.001;
+            nr1Friend.sprite.alpha += 0.00085;
             nr1Friend.prop.width += 0.5;
             nr1Friend.prop.height += 0.5;
             nr1Friend.sprite.rotation += 0.02;
-
+            if (nr1Friend.sprite.alpha <= 0.999) nr1Friend.sprite.tint = 0xFFCFEF * Math.random();
+            else nr1Friend.sprite.tint = 0xFFEFF0;
             this.inputDetection.alpha += 0.00125;
         }, 1);
 
@@ -371,7 +373,6 @@ class Player extends DynamicObject {
                 this.friends[i].prop.width = 8;
                 this.friends[i].prop.height = 8;
             }
-
         }
 
         for (var i = this.friends.length - 1; i > -1; i--) {
@@ -384,9 +385,14 @@ class Player extends DynamicObject {
         this.sprite.tint = 0xFF0000;
         this.isMunch = true;
 
-        this.friends[0].target.reverse = true;
-        this.friends[0].sprite.tint = 0x0000FF;
-        this.friends[0].sprite.alpha = 0.8;
+        var nr1Friend;
+
+        for (var i = this.friends.length - 1; i > -1; i--)
+            if (this.friends[i].nr1) nr1Friend = this.friends[i];
+
+        nr1Friend.target.reverse = true;
+        nr1Friend.sprite.tint = 0x0000FF;
+        nr1Friend.sprite.alpha = 0.8;
 
         setTimeout(() => { if (this.IsDestroyed()) return; this.sprite.alpha = 0.2; }, 3000);
         setTimeout(() => { if (this.IsDestroyed()) return; this.sprite.alpha = 0.8; }, 3750);
@@ -398,9 +404,9 @@ class Player extends DynamicObject {
             this.sprite.alpha = 1;
             this.sprite.tint = 0x0000FF;
             this.isMunch = false;
-            this.friends[0].target.reverse = false;
-            this.friends[0].sprite.tint = 0xFF0000;
-            this.friends[0].sprite.alpha = 1;
+            nr1Friend.target.reverse = false;
+            nr1Friend.sprite.tint = 0xFF0000;
+            nr1Friend.sprite.alpha = 1;
         }, 5000);
     }
 }
@@ -457,7 +463,7 @@ class Friend extends AI {
         this.sprite.tint = 0xFFFFFF * Math.random();
         this.sprite.alpha = 0.05;
 
-        setTimeout(() => { if (this.IsDestroyed()) return; this.sprite.alpha = 0.2; }, 1000);
+        setTimeout(() => { if (this.IsDestroyed()) return; this.sprite.alpha = 0.25; }, 500);
         setTimeout(() => { if (this.IsDestroyed()) return; this.sprite.alpha = 0.5; this.sprite.tint = 0xFF0000 * Math.random(); }, 4000);
         setTimeout(() => { if (this.IsDestroyed()) return; this.sprite.alpha = 1; }, 5000);
 

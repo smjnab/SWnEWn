@@ -242,7 +242,7 @@ function TextCreateFPS(updateRate = 1000) {
  * @param {string} message
  */
 function TextCreateMessage(name, message, posX, posY, color) {
-    var msgText = new PIXI.Text("00", { fontFamily: "Courier", fontSize: 18, fill: color, align: "center", strokeThickness: 20 });
+    var msgText = new PIXI.Text("00", { fontFamily: "Courier", fontSize: 18, fill: color, align: "center", strokeThickness: 5 });
     msgText.text = message;
     msgText.position.set(posX, posY);
     msgText.name = name;

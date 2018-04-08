@@ -23,8 +23,6 @@ const { Grid } = require("./grid");
 /**@type {World} */
 var world;
 
-var FPS;
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // PIXI EVENTS
@@ -94,15 +92,83 @@ JPixi.Event.Start(() => {
     }*/
 
     // FPS
-    FPS = JPixi.Text.CreateFPS();
+    // var FPS = JPixi.Text.CreateFPS();
+
+    // START OF GAME
+    var mainMenu = true;
+
+    var black = new JPixi.Sprite.Create("swnewn_files/images/black1px.png", 0, 0, appConf.worldWidth, appConf.worldHeight, null, false);
+    black.interactive = true;
+    App.stage.addChild(black);
+
+    var logoText = ["S", "W", "n", "E", "W", "n"];
+    /**@type {PIXI.Text[]} */
+    var logoArray = [];
+
+    if (appConf.cameraWidth > appConf.cameraHeight) {
+        for (var i = 0; i < logoText.length; i++) {
+            logoArray[i] = JPixi.Text.CreateMessage("logo", logoText[i], appConf.cameraWidth / 4 + 100 * i, appConf.cameraHeight / 3, 0xFFFFFF);
+            logoArray[i].style.fontSize = 42;
+        }
+    }
+    else {
+        for (var i = 0; i < logoText.length; i++) {
+            logoArray[i] = JPixi.Text.CreateMessage("logo", logoText[i], appConf.cameraWidth / 8 + 50 * i, appConf.cameraHeight / 4, 0xFFFFFF);
+            logoArray[i].style.fontSize = 42;
+        }
+    }
+
+    var count = 0;
+    var dir = 1;
+
+    function MainMenu(delta) {
+        count++;
+        if (count == 150) {
+            count = -160;
+            dir = -1;
+        }
+        else if (count == -1) {
+            count = 1;
+            dir = 1;
+        }
+
+        for (var i = 0; i < logoArray.length; i++) {
+            logoArray[i].tint = 0xFFFFFF * Math.random();
+
+            if (i <= 2) logoArray[i].position.x += Math.random() * delta * dir;
+            else logoArray[i].position.x -= Math.random() * delta * dir;
+
+            if (logoArray[i].position.y <= appConf.cameraHeight / 2) logoArray[i].position.y += Math.random() * delta * dir * -1;
+            else logoArray[i].position.y -= Math.random() * delta * dir * -1;
+        }
+
+    }
+
+    var instruction = JPixi.Text.CreateMessage("logo", "Click/Touch to begin.", appConf.cameraWidth / 2.5, appConf.cameraHeight / 1.5, 0xFFFFFF);
+
+    black.on("pointerup", event => {
+        event.stopPropagation();
+
+        App.stage.removeChild(black);
+        App.stage.removeChild(instruction);
+
+        for (var i = 0; i < logoArray.length; i++) {
+            App.stage.removeChild(logoArray[i]);
+        }
+        mainMenu = false;
+    });
+
 
     // Begin game 
     App.AddTicker(delta => {
-        FPS();
+        //FPS();
 
-        world.Update(delta);
+        if (!mainMenu) world.Update(delta);
+        else MainMenu(delta);
     });
 });
+
+
 
 JPixi.Event.FullScreen(() => {
     if (leaveFullScreen.visible) {
