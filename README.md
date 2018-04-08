@@ -1,6 +1,8 @@
 # SWnEWn
 SteemitJam #4 participant, using PixiJS and sat-js to make a browser game.
 
+![box](https://github.com/smjnab/SWnEWn/blob/master/images/swnewn.png)
+
 ## How to play
 Go to https://smjn.itch.io/swnewn to play the game, instructions included on page.
 
