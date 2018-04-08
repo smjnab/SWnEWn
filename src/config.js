@@ -21,7 +21,6 @@ module.exports = {
     // DynamicObject Player
     player: {
         cellUpdateRate: 2,  // How often to check for cells player is in. 1 = every frame, 2 = every other etc
-        movementUpdateRate: 6,
         speed: 1  // Default movement speed. direction * speed * updaterate * delta
     },
 

@@ -215,10 +215,7 @@ class PUFreeze extends PowerUp {
 
     CollisionPlayer(player) {
         super.CollisionPlayer(player);
-
-        for (var i = player.friends.length - 1; i > -1; i--) {
-            player.friends[i].Freeze();
-        }
+        player.PUFreeze();
     }
 }
 

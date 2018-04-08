@@ -44,14 +44,35 @@ class DynamicObject extends BaseObjectColl {
         this.cellsActive = [];
         for (var i = 0; i < this.world.grid.cellCount; i++)
             this.cellsActive[i] = false;
+
+        this.timeOutList = [];
     }
 
+    AddToTimeOutList(timeOut) {
+        this.timeOutList.push(timeOut);
+    }
+
+    ResetTimeOutList(doReset = true) {
+        if (doReset) this.Reset();
+
+        for (var i = this.timeOutList.length - 1; i > -1; i--) {
+            clearTimeout(this.timeOutList[i]);
+        }
+
+        this.timeOutList = [];
+    }
+
+    Reset() {
+
+    }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // DESTROY
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     Destroy() {
+        this.ResetTimeOutList(false);
+
         this.target.object.UnSubscribeAll(this);
         this.target = undefined;
 
@@ -61,6 +82,7 @@ class DynamicObject extends BaseObjectColl {
 
         this.Publish("OnDestroyed");
         this.eventTopics = [];
+        this.timeOutList = [];
     }
 
 
@@ -243,12 +265,12 @@ class Player extends DynamicObject {
         this.scoreText.text = "Score: " + this.score;
     }
 
+
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // OBJECT UPDATE
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     Update(cell) {
-        // if (cell.FramesBetweenUpdates(player.movementUpdateRate)) {
         // Move player towards mouse/touch position.
         if (this.eventData != undefined && this.speed > 0) {
             var localPoint = this.eventData.getLocalPosition(this.world.container);
@@ -264,11 +286,23 @@ class Player extends DynamicObject {
             this.playerTarget.prop.y = localPoint.y;
             this.playerTarget.sprite.position.set(localPoint.x, localPoint.y);
         }
-        //   }
 
         if (this.IsDestroyed()) return;
 
         this.UpdateMovement(cell);
+    }
+
+
+    Reset() {
+        this.sprite.alpha = 1;
+        this.sprite.tint = 0x0000FF;
+        this.isMunch = false;
+
+        for (var i = this.friends.length - 1; i > -1; i--) {
+            this.friends[i].Reset();
+        }
+
+        super.Reset();
     }
 
     Destroy() {
@@ -278,56 +312,22 @@ class Player extends DynamicObject {
 
         this.world.container.parent.removeChild(this.scoreText);
 
-        JPixi.Text.CreateMessage("death", "GAME OVER MAN, GAME OVER!\n SCORE: " + this.score, appConf.cameraWidth / 3, appConf.cameraHeight / 3, 0xFFFFFF);
+        var gameOver = JPixi.Text.CreateMessage("death", "GAME OVER MAN, GAME OVER!\n SCORE: " + this.score + "\n\n\n\n\n\n Restarting in 10 seconds.", appConf.cameraWidth / 3, appConf.cameraHeight / 3, 0xFFFFFF);
 
         this.inputDetection.alpha = 0;
         this.inputDetection.parent.removeChild(this.inputDetection);
         this.inputDetection.setParent(this.world.layerTop);
 
-        var nr1Friend;
-        var onDeath = new BaseObject(this.world, -this.world.container.x, -this.world.container.y, 0, 0);
-        var count = 0;
-
         for (var i = this.friends.length - 1; i > -1; i--)
-            if (this.friends[i].nr1) nr1Friend = this.friends[i];
-
-        nr1Friend.target.SetTarget(onDeath);
-        nr1Friend.sprite.alpha = 0.1;
-        nr1Friend.speed = 1;
-        nr1Friend.sprite.parent.removeChild(nr1Friend.sprite);
-        nr1Friend.sprite.setParent(this.world.layerTopDecals);
-        nr1Friend.sprite.anchor.set(0.5, 0.5);
-        nr1Friend.sprite.tint = 0xFFCFEF;
+            this.friends[i].InSuperNova();
 
         setInterval(() => {
-            count++;
-            if (count <= 20) {
-                onDeath.prop.y += 1;
-                onDeath.prop.x += 2;
-            }
-            else if (count > 20 && count <= 40) {
-                onDeath.prop.y += 2;
-                onDeath.prop.x -= 1;
-            }
-            else if (count > 40 && count <= 60) {
-                onDeath.prop.y -= 1;
-                onDeath.prop.x -= 2;
-            }
-            else if (count > 60) {
-                onDeath.prop.y -= 2;
-                onDeath.prop.x += 1;
-            }
-
-            if (count >= 80) count = 0;
-
-            nr1Friend.sprite.alpha += 0.00085;
-            nr1Friend.prop.width += 0.5;
-            nr1Friend.prop.height += 0.5;
-            nr1Friend.sprite.rotation += 0.02;
-            if (nr1Friend.sprite.alpha <= 0.999) nr1Friend.sprite.tint = 0xFFCFEF * Math.random();
-            else nr1Friend.sprite.tint = 0xFFEFF0;
             this.inputDetection.alpha += 0.00125;
         }, 1);
+
+        setTimeout(() => {
+            location.reload();
+        }, 10000);
 
         super.Destroy();
     }
@@ -348,32 +348,29 @@ class Player extends DynamicObject {
     }
 
     PUOutOfPhase() {
+        this.ResetTimeOutList();
+
         this.sprite.alpha = 0.2;
         this.sprite.tint = 0xFF00FF;
 
-        setTimeout(() => { if (this.IsDestroyed()) return; this.sprite.alpha = 0.2; }, 3000);
-        setTimeout(() => { if (this.IsDestroyed()) return; this.sprite.alpha = 0.8; }, 3750);
-        setTimeout(() => { if (this.IsDestroyed()) return; this.sprite.alpha = 0.2; }, 4250);
-        setTimeout(() => { if (this.IsDestroyed()) return; this.sprite.alpha = 0.8; }, 4500);
-        setTimeout(() => { if (this.IsDestroyed()) return; this.sprite.alpha = 0.2; }, 4750);
-        setTimeout(() => { if (this.IsDestroyed()) return; this.sprite.alpha = 1; this.sprite.tint = 0x0000FF; }, 5000);
+        this.AddToTimeOutList(setTimeout(() => { this.sprite.alpha = 0.2; }, 3000));
+        this.AddToTimeOutList(setTimeout(() => { this.sprite.alpha = 0.8; }, 3750));
+        this.AddToTimeOutList(setTimeout(() => { this.sprite.alpha = 0.2; }, 4250));
+        this.AddToTimeOutList(setTimeout(() => { this.sprite.alpha = 0.8; }, 4500));
+        this.AddToTimeOutList(setTimeout(() => { this.sprite.alpha = 0.2; }, 4750));
+        this.AddToTimeOutList(setTimeout(() => { this.Reset(); }, 5000));
+    }
+
+    PUFreeze() {
+        this.ResetTimeOutList();
+
+        for (var i = this.friends.length - 1; i > -1; i--) {
+            this.friends[i].Freeze();
+        }
     }
 
     PURepel() {
-        for (var i = this.friends.length - 1; i > -1; i--) {
-            if (i == this.friends.length - 1) {
-                this.friends[i].target.SetTarget(this);
-                this.friends[i].nr1 = true;
-                this.friends[i].prop.width += 8;
-                this.friends[i].prop.height += 8;
-            }
-            else {
-                this.friends[i].target.SetTarget(this.friends[i + 1]);
-                this.friends[i].nr1 = false;
-                this.friends[i].prop.width = 8;
-                this.friends[i].prop.height = 8;
-            }
-        }
+        this.ResetTimeOutList();
 
         for (var i = this.friends.length - 1; i > -1; i--) {
             this.friends[i].InRepel();
@@ -381,33 +378,22 @@ class Player extends DynamicObject {
     }
 
     PUMunch() {
+        this.ResetTimeOutList();
+
         this.sprite.alpha = 0.5;
         this.sprite.tint = 0xFF0000;
         this.isMunch = true;
 
-        var nr1Friend;
+        for (var i = this.friends.length - 1; i > -1; i--) {
+            this.friends[i].InScared();
+        }
 
-        for (var i = this.friends.length - 1; i > -1; i--)
-            if (this.friends[i].nr1) nr1Friend = this.friends[i];
-
-        nr1Friend.target.reverse = true;
-        nr1Friend.sprite.tint = 0x0000FF;
-        nr1Friend.sprite.alpha = 0.8;
-
-        setTimeout(() => { if (this.IsDestroyed()) return; this.sprite.alpha = 0.2; }, 3000);
-        setTimeout(() => { if (this.IsDestroyed()) return; this.sprite.alpha = 0.8; }, 3750);
-        setTimeout(() => { if (this.IsDestroyed()) return; this.sprite.alpha = 0.2; }, 4250);
-        setTimeout(() => { if (this.IsDestroyed()) return; this.sprite.alpha = 0.8; }, 4500);
-        setTimeout(() => { if (this.IsDestroyed()) return; this.sprite.alpha = 0.2; }, 4750);
-        setTimeout(() => {
-            if (this.IsDestroyed()) return;
-            this.sprite.alpha = 1;
-            this.sprite.tint = 0x0000FF;
-            this.isMunch = false;
-            nr1Friend.target.reverse = false;
-            nr1Friend.sprite.tint = 0xFF0000;
-            nr1Friend.sprite.alpha = 1;
-        }, 5000);
+        this.AddToTimeOutList(setTimeout(() => { this.sprite.alpha = 0.2; }, 3000));
+        this.AddToTimeOutList(setTimeout(() => { this.sprite.alpha = 0.8; }, 3750));
+        this.AddToTimeOutList(setTimeout(() => { this.sprite.alpha = 0.2; }, 4250));
+        this.AddToTimeOutList(setTimeout(() => { this.sprite.alpha = 0.8; }, 4500));
+        this.AddToTimeOutList(setTimeout(() => { this.sprite.alpha = 0.2; }, 4750));
+        this.AddToTimeOutList(setTimeout(() => { this.Reset(); }, 5000));
     }
 }
 
@@ -463,9 +449,9 @@ class Friend extends AI {
         this.sprite.tint = 0xFFFFFF * Math.random();
         this.sprite.alpha = 0.05;
 
-        setTimeout(() => { if (this.IsDestroyed()) return; this.sprite.alpha = 0.25; }, 500);
-        setTimeout(() => { if (this.IsDestroyed()) return; this.sprite.alpha = 0.5; this.sprite.tint = 0xFF0000 * Math.random(); }, 4000);
-        setTimeout(() => { if (this.IsDestroyed()) return; this.sprite.alpha = 1; }, 5000);
+        this.AddToTimeOutList(setTimeout(() => { this.sprite.alpha = 0.25; }, 500));
+        this.AddToTimeOutList(setTimeout(() => { this.sprite.alpha = 0.5; this.sprite.tint = 0xFF0000 * Math.random(); }, 4000));
+        this.AddToTimeOutList(setTimeout(() => { this.Reset(); }, 5000));
 
         this.nr1 = false;
     }
@@ -477,7 +463,12 @@ class Friend extends AI {
 
     Update(cell) {
         if (this.nr1 && this.target.distance < 20000 && this.sprite.alpha == 1) this.sprite.tint = 0xFF0000;
-        else if (this.sprite.alpha == 1 && this.speed != 0) this.sprite.tint = 0xFFFFFF * Math.random();
+        else if (!this.gameOver && !this.target.reverse && this.speed > 0.8) this.sprite.tint = 0xFFFFFF * Math.random();
+
+        if (this.target.reverse && !this.nr1) {
+            this.sprite.alpha = 0.2;
+            this.sprite.tint = 0xFFFF00;
+        }
 
         if (cell.FramesBetweenUpdates(ai.interactUpdateRate)) {
             var player = cell.player[0];
@@ -515,8 +506,6 @@ class Friend extends AI {
                     player.friends[i].target.SetTarget(player.friends[i - 1]);
                 }
 
-                //  if (player.friends[index] != undefined) player.friends[index].SetTarget(player.friends[index - 1]);
-
                 this.Destroy();
             }
 
@@ -526,35 +515,101 @@ class Friend extends AI {
         if (player.sprite.alpha === 1 && this.sprite.alpha === 1) player.Destroy();
     }
 
+    Reset() {
+        this.target.reverse = false;
+        this.sprite.alpha = 1;
+        this.sprite.tint = 0xFFFFFF * Math.random();
+        this.speed = ai.friend.speed;
+
+        super.Reset();
+    }
+
     InRepel() {
-        if (this.sprite.alpha != 1) return;
+        this.ResetTimeOutList();
 
         this.target.reverse = true;
         this.sprite.alpha = 0.2;
         this.sprite.tint = 0xFFFF00;
 
-        setTimeout(() => {
-            if (this.IsDestroyed()) return;
+        this.AddToTimeOutList(setTimeout(() => { this.target.reverse = false; }, 2500));
+        this.AddToTimeOutList(setTimeout(() => { this.Reset(); }, 5000));
+    }
 
-            this.target.reverse = false;
+    InScared() {
+        this.ResetTimeOutList();
 
-            setTimeout(() => {
-                if (this.IsDestroyed()) return;
+        this.speed = ai.friend.speed * 1.25;
 
-                this.sprite.alpha = 1;
-            }, 2500);
-        }, 2500);
+        if (this.nr1) {
+            this.target.reverse = true;
+            this.sprite.tint = 0x0000FF;
+            this.sprite.alpha = 0.8;
+        }
+    }
+
+    InSuperNova() {
+        if (!this.nr1) return;
+
+        this.ResetTimeOutList();
+
+        var onDeath = new BaseObject(this.world, -this.world.container.x, -this.world.container.y, 0, 0);
+        var count = 0;
+
+        this.target.SetTarget(onDeath);
+        this.sprite.alpha = 0.1;
+        this.speed = 1;
+        this.sprite.parent.removeChild(this.sprite);
+        this.sprite.setParent(this.world.layerTopDecals);
+        this.sprite.anchor.set(0.5, 0.5);
+        this.sprite.tint = 0xFFCFEF;
+        this.gameOver = true;
+
+        setInterval(() => {
+            count++;
+            if (count <= 20) {
+                onDeath.prop.y += 1;
+                onDeath.prop.x += 2;
+            }
+            else if (count > 20 && count <= 40) {
+                onDeath.prop.y += 2;
+                onDeath.prop.x -= 1;
+            }
+            else if (count > 40 && count <= 60) {
+                onDeath.prop.y -= 1;
+                onDeath.prop.x -= 2;
+            }
+            else if (count > 60) {
+                onDeath.prop.y -= 2;
+                onDeath.prop.x += 1;
+            }
+
+            if (count >= 80) count = 0;
+
+            this.sprite.alpha += 0.00085;
+            this.prop.width += 0.5;
+            this.prop.height += 0.5;
+            this.sprite.rotation += 0.02;
+
+            if (this.sprite.alpha <= 0.99) this.sprite.tint = 0xFFCFEF * Math.random();
+            else this.sprite.tint = 0xFFEFF0;
+        }, 1);
     }
 
     Freeze() {
-        this.speed = 0;
+        this.ResetTimeOutList();
 
-        setTimeout(() => { if (this.IsDestroyed()) return; this.sprite.alpha = 0.2; }, 3000);
-        setTimeout(() => { if (this.IsDestroyed()) return; this.sprite.alpha = 0.8; }, 3750);
-        setTimeout(() => { if (this.IsDestroyed()) return; this.sprite.alpha = 0.2; }, 4250);
-        setTimeout(() => { if (this.IsDestroyed()) return; this.sprite.alpha = 0.8; }, 4500);
-        setTimeout(() => { if (this.IsDestroyed()) return; this.sprite.alpha = 0.2; }, 4750);
-        setTimeout(() => { if (this.IsDestroyed()) return; this.sprite.alpha = 1; this.speed = ai.friend.speed; }, 5000);
+        this.sprite.tint = 0x00FF00;
+        this.sprite.alpha = 0.8;
+        this.speed = 0.8;
+
+        this.AddToTimeOutList(setTimeout(() => { this.speed = 0.1; }, 250));
+        this.AddToTimeOutList(setTimeout(() => { this.speed = 0.01; this.sprite.alpha = 1; }, 1000));
+        this.AddToTimeOutList(setTimeout(() => { this.sprite.alpha = 0.2; }, 3000));
+        this.AddToTimeOutList(setTimeout(() => { this.sprite.alpha = 1; }, 3750));
+        this.AddToTimeOutList(setTimeout(() => { this.sprite.alpha = 0.2; }, 4250));
+        this.AddToTimeOutList(setTimeout(() => { this.sprite.alpha = 1; }, 4500));
+        this.AddToTimeOutList(setTimeout(() => { this.sprite.alpha = 0.2; }, 4750));
+        this.AddToTimeOutList(setTimeout(() => { this.Reset(); }, 5000));
     }
 }
 
